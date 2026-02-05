@@ -1,0 +1,50 @@
+{
+  "name": "clover-illustration-detector-plugin",
+  "version": "1.0.0",
+  "description": "Clover IIIF plugin to detect illustrated pages using a lightweight client-side model.",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "vite",
+    "watch": "tsup --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@samvera/clover-iiif": "^3.3.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@iiif/helpers": "^1.5.8"
+  },
+  "devDependencies": {
+    "@samvera/clover-iiif": "^3.3.8",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}
