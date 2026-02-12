@@ -1,8 +1,9 @@
 {
-  "name": "clover-illustration-detector-plugin",
+  "name": "@nulib/clover-illustration-detector-plugin",
   "version": "1.0.0",
   "description": "Clover IIIF plugin to detect illustrated pages using a lightweight client-side model.",
   "type": "module",
+  "sideEffects": false,
   "files": [
     "dist",
     "README.md",
@@ -22,15 +23,36 @@
     "build": "tsup",
     "dev": "vite",
     "watch": "tsup --watch",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "iiif",
+    "clover",
+    "samvera",
+    "react",
+    "plugin"
+  ],
+  "author": "Northwestern University Libraries",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nulib-labs/clover-illustration-detector-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nulib-labs/clover-illustration-detector-plugin/issues"
+  },
+  "homepage": "https://github.com/nulib-labs/clover-illustration-detector-plugin#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
-    "@samvera/clover-iiif": "^3.3.8",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@samvera/clover-iiif": ">=3.3.8 <5",
+    "react": ">=18 <20",
+    "react-dom": ">=18 <20"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
