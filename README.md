@@ -23,7 +23,23 @@ import { createIllustrationDetectorPlugin } from "@nulib/clover-illustration-det
 const plugins = [
   createIllustrationDetectorPlugin({
     id: "illustration-detector",
-    tabLabel: "Illustrations",
+    tabLabelByLanguage: {
+      en: "Illustrations",
+      fr: "Illustrations",
+      es: "Ilustraciones",
+    },
+    translations: {
+      fr: {
+        classifyManifest: "Classifier le manifeste",
+        classifying: "Classification...",
+        summaryPending: "En attente",
+      },
+      es: {
+        classifyManifest: "Clasificar manifiesto",
+        classifying: "Clasificando...",
+        summaryPending: "Pendientes",
+      },
+    },
   }),
 ];
 
@@ -43,7 +59,24 @@ export function ManifestViewer({ manifestUrl }: { manifestUrl: string }) {
 Plugin options:
 
 - `id` (optional): custom plugin id. Default: `illustration-detector`.
-- `tabLabel` (optional): Information Panel tab label. Default: `Illustrations`.
+- `tabLabel` (optional): fallback Information Panel tab label (`none` locale). Default: `Illustrations`.
+- `tabLabelByLanguage` (optional): localized Information Panel tab labels by language code.
+- `translations` (optional): UI translation overrides by language code for in-panel strings.
+
+### i18n Notes
+
+- Clover controls active language via its i18next setup.
+- This plugin registers its own namespace (`illustrationDetector`) and includes default English strings.
+- This plugin also includes built-in `fr` and `es` translations for core UI/status text.
+- Provide `translations` to override/add strings for your supported locales.
+
+Common translation keys:
+
+- `classifyManifest`, `classifying`
+- `summaryClassified`, `summaryPending`, `summaryErrors`
+- `statusPending`, `statusClassifying`, `statusClassified`, `statusError`, `statusSkipped`
+- `labelIllustrated`, `labelNotIllustrated`
+- `confidenceThresholdLabel`, `noThumbnail`, `navigateToCanvasAriaLabel`
 
 ## Screenshot
 
@@ -53,7 +86,8 @@ Plugin options:
 
 - Adds an Information Panel tab (`Illustrations` by default)
 - Classifies every canvas in the active manifest
-- Shows status, predicted label, and illustrated confidence per canvas
+- Shows translated status, predicted label, and illustrated confidence per canvas
+- Includes icon-based visual cues for summary counts and per-canvas status/labels
 - Supports confidence threshold filtering in the panel UI
 - Lets users click a result to navigate to that canvas
 

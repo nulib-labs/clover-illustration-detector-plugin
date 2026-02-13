@@ -1,6 +1,6 @@
 {
   "name": "@nulib/clover-illustration-detector-plugin",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Clover IIIF plugin to detect illustrated pages using a lightweight client-side model.",
   "type": "module",
   "sideEffects": false,
@@ -56,7 +56,9 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
-    "@iiif/helpers": "^1.5.8"
+    "@iiif/helpers": "^1.5.8",
+    "i18next": "^23.16.8",
+    "react-i18next": "^15.7.4"
   },
   "devDependencies": {
     "@samvera/clover-iiif": "^3.3.8",

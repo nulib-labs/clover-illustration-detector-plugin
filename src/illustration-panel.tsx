@@ -2,6 +2,8 @@ import * as React from "react";
 import type { PluginInformationPanel } from "@samvera/clover-iiif";
 import { getValue } from "@iiif/helpers";
 import { env, pipeline } from "@huggingface/transformers";
+import { useTranslation } from "react-i18next";
+import { ILLUSTRATION_DETECTOR_I18N_NAMESPACE } from "./i18n";
 
 type ClassificationResult = {
   label: "illustrated" | "not-illustrated";
@@ -48,6 +50,23 @@ type ImageClassifier = (image: string) => Promise<
 const MODEL_ID = "small-models-for-glam/historical-illustration-detector";
 const MAX_CONCURRENCY = 3;
 let classifierPromise: Promise<ImageClassifier> | null = null;
+
+function getStatusIcon(status: CanvasStatus): { symbol: string; color: string } {
+  switch (status) {
+    case "pending":
+      return { symbol: "◷", color: "#64748b" };
+    case "classifying":
+      return { symbol: "◌", color: "#2563eb" };
+    case "classified":
+      return { symbol: "✓", color: "#15803d" };
+    case "error":
+      return { symbol: "⚠", color: "#b91c1c" };
+    case "skipped":
+      return { symbol: "⊘", color: "#6b7280" };
+    default:
+      return { symbol: "•", color: "#6b7280" };
+  }
+}
 
 function getClassifier(): Promise<ImageClassifier> {
   if (!classifierPromise) {
@@ -161,6 +180,7 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
   useViewerDispatch,
   useViewerState,
 }) => {
+  const { t, i18n } = useTranslation(ILLUSTRATION_DETECTOR_I18N_NAMESPACE);
   const viewerState = useViewerState();
   const viewerDispatch = (useViewerDispatch as unknown as () => (action: any) => void)();
   const [results, setResults] = React.useState<CanvasClassificationState[]>([]);
@@ -196,10 +216,10 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
           thumbnail: getCanvasThumbnail(manifestCanvas),
           imageUrl,
           status: imageUrl ? "pending" : "skipped",
-          error: imageUrl ? undefined : "No canvas image found",
+          error: imageUrl ? undefined : t("noCanvasImageFound"),
         };
       }),
-    [manifestCanvases, viewerState.vault],
+    [i18n.language, manifestCanvases, t, viewerState.vault],
   );
 
   React.useEffect(() => {
@@ -280,7 +300,7 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
                   ? {
                       ...entry,
                       status: "error",
-                      error: error instanceof Error ? error.message : "Classification failed",
+                      error: error instanceof Error ? error.message : t("classificationFailed"),
                     }
                   : entry,
               ),
@@ -296,12 +316,12 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
       );
     } catch (error) {
       setPanelError(
-        error instanceof Error ? error.message : "Unable to initialize classifier",
+        error instanceof Error ? error.message : t("unableToInitializeClassifier"),
       );
     } finally {
       setIsClassifying(false);
     }
-  }, [baseCanvasStates]);
+  }, [baseCanvasStates, t]);
 
   const pendingCount = results.filter(
     (item) => item.status === "pending" || item.status === "classifying",
@@ -320,6 +340,17 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
         return item.confidence * 100 >= confidenceThreshold;
       }),
     [results, confidenceThreshold],
+  );
+
+  const statusLabels = React.useMemo<Record<CanvasStatus, string>>(
+    () => ({
+      pending: t("statusPending"),
+      classifying: t("statusClassifying"),
+      classified: t("statusClassified"),
+      error: t("statusError"),
+      skipped: t("statusSkipped"),
+    }),
+    [i18n.language, t],
   );
 
   const navigateToCanvas = React.useCallback(
@@ -351,16 +382,33 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
           marginBottom: "0.35rem",
         }}
       >
-        {isClassifying ? "Classifying..." : "Classify Manifest"}
+        {isClassifying ? t("classifying") : t("classifyManifest")}
       </button>
       <p style={{ marginBottom: "0.5rem" }}>
-        Classified: {classifiedCount} | Pending: {pendingCount} | Errors: {errorCount}
+        <span style={{ marginRight: "0.5rem" }}>
+          <span aria-hidden="true" style={{ color: "#15803d", marginRight: "0.2rem" }}>
+            ✓
+          </span>
+          {t("summaryClassified")}: {classifiedCount}
+        </span>
+        <span style={{ marginRight: "0.5rem" }}>
+          <span aria-hidden="true" style={{ color: "#64748b", marginRight: "0.2rem" }}>
+            ◷
+          </span>
+          {t("summaryPending")}: {pendingCount}
+        </span>
+        <span>
+          <span aria-hidden="true" style={{ color: "#b91c1c", marginRight: "0.2rem" }}>
+            ⚠
+          </span>
+          {t("summaryErrors")}: {errorCount}
+        </span>
       </p>
       <label
         htmlFor="confidence-threshold"
         style={{ display: "block", fontSize: "0.8rem", marginBottom: "0.25rem" }}
       >
-        Show canvases classified above confidence threshold %: {confidenceThreshold}
+        {t("confidenceThresholdLabel", { value: confidenceThreshold })}
       </label>
       <input
         id="confidence-threshold"
@@ -397,7 +445,7 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
                 textAlign: "left",
                 cursor: "pointer",
               }}
-              aria-label={`Navigate to canvas ${result.label}`}
+              aria-label={t("navigateToCanvasAriaLabel", { label: result.label })}
             >
               <div
                 style={{
@@ -429,7 +477,7 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
                         lineHeight: 1.2,
                       }}
                     >
-                      No thumbnail
+                      {t("noThumbnail")}
                     </div>
                   )}
                 </div>
@@ -447,10 +495,31 @@ export const IllustrationPanel: React.FC<PluginInformationPanel> = ({
                     {result.id}
                   </div>
                   <div style={{ fontSize: "0.8rem" }}>
-                    Status: {result.status}
-                    {result.predictedLabel ? ` | Label: ${result.predictedLabel}` : ""}
+                    {(() => {
+                      const statusIcon = getStatusIcon(result.status);
+                      return (
+                        <>
+                          {t("status")}:{" "}
+                          <span
+                            role="img"
+                            aria-label={statusLabels[result.status]}
+                            style={{ color: statusIcon.color, marginRight: "0.2rem" }}
+                          >
+                            {statusIcon.symbol}
+                          </span>
+                          {statusLabels[result.status]}
+                        </>
+                      );
+                    })()}
+                    {result.predictedLabel
+                      ? ` | ${t("label")}: ${
+                          result.predictedLabel === "illustrated" ? "🖼 " : "📄 "
+                        }${
+                          result.predictedLabel === "illustrated" ? t("labelIllustrated") : t("labelNotIllustrated")
+                        }`
+                      : ""}
                     {typeof result.confidence === "number"
-                      ? ` | Illustrated confidence: ${(result.confidence * 100).toFixed(1)}%`
+                      ? ` | ${t("illustratedConfidence")}: ${(result.confidence * 100).toFixed(1)}%`
                       : ""}
                   </div>
                   {result.error ? (
